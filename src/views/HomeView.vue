@@ -24,7 +24,10 @@ setInterval(() => {
 function update() {
   const current = new Date();
 
-  currentTime.value = current.getHours() + current.getMinutes() / 60;
+  currentTime.value =
+    current.getHours() +
+    current.getMinutes() / 60 +
+    current.getSeconds() / 3600;
 }
 
 update();
@@ -32,9 +35,10 @@ update();
 // Converters
 function formatTime(time: number): string {
   const hour = Math.floor(time);
-  const min = Math.round((time - hour) * 60);
+  const min = Math.floor((time - hour) * 60);
+  const sec = Math.round((time - hour - min / 60) * 3600);
 
-  return `${hour}h${min < 10 ? "0" : ""}${min}`;
+  return `${hour}:${min < 10 ? "0" : ""}${min}:${sec < 10 ? "0" : ""}${sec}`;
 }
 
 function parseTime(time: string): number {
