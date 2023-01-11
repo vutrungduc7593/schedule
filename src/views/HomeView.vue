@@ -57,9 +57,9 @@ function timelineItemStatusAt(index: number): TimelineItemStatus {
       ? parseTime(schedule.items[index + 1].startTime)
       : 24;
 
-  if (nextItemTime < currentTime.value) {
+  if (nextItemTime <= currentTime.value) {
     return TimelineItemStatus.Over;
-  } else if (currentItemTime < currentTime.value) {
+  } else if (currentItemTime <= currentTime.value) {
     return TimelineItemStatus.Current;
   } else {
     return TimelineItemStatus.Upcomming;
