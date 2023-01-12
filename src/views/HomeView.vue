@@ -16,7 +16,6 @@ enum TimelineItemStatus {
 
 let schedule = reactive(storage.get(STORAGE_KEYS.SCHEDULE, Schedule));
 
-// Loop
 setInterval(() => {
   update();
 }, 1000);
@@ -28,6 +27,12 @@ function update() {
     current.getHours() +
     current.getMinutes() / 60 +
     current.getSeconds() / 3600;
+}
+
+function saveSchedule() {
+  if (!storage.set(STORAGE_KEYS.SCHEDULE, schedule)) {
+    alert("Could not save data");
+  }
 }
 
 update();
@@ -81,9 +86,113 @@ function timelineItemStatusClassAt(index: number): string | undefined {
 function goToEditor() {
   router.push("/editor");
 }
+
+// Download
+function saveAs(
+  content: string,
+  fileName: string,
+  mimeType: string = "text/plain"
+) {
+  const a = document.createElement("a");
+  a.href = window.URL.createObjectURL(new Blob([content], { type: mimeType }));
+  a.download = fileName;
+  a.click();
+}
+
+function currentDateFileName() {
+  const now = new Date();
+  now.setHours(now.getHours() - now.getTimezoneOffset() / 60);
+
+  return now.toISOString().split(".")[0].replace(/[-:T]/g, "");
+}
+
+function download() {
+  saveAs(
+    JSON.stringify(schedule),
+    `schedule-${currentDateFileName()}.json`,
+    "application/json"
+  );
+}
+
+// Upload
+async function pickFile(): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".json,application/json";
+    fileInput.click();
+
+    fileInput.onchange = () => {
+      if (!fileInput.files) return reject("Not found files in input");
+
+      const result = fileInput.files?.length > 0 ? fileInput.files[0] : null;
+
+      if (!result) return reject("Not select any file");
+
+      resolve(result);
+    };
+  });
+}
+
+function readFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsText(file, "UTF-8");
+
+    reader.onload = (e) => {
+      if (!e.target) return reject("Not found target");
+
+      if (typeof e.target.result !== "string")
+        return reject("Result is not a string");
+
+      resolve(e.target.result);
+    };
+
+    reader.onerror = (e) => {
+      reject(e.target?.error);
+    };
+  });
+}
+
+async function upload() {
+  try {
+    const file = await pickFile();
+
+    const content = await readFile(file);
+
+    const data = JSON.parse(content);
+
+    schedule = reactive(data);
+
+    saveSchedule();
+
+    alert("Uploaded data");
+  } catch (error) {
+    alert(error);
+  }
+}
 </script>
 
 <template>
+  <!-- Upload -->
+  <img
+    src="@/assets/icons/upload.svg"
+    title="Upload"
+    class="icon-button"
+    style="position: fixed; top: 10px; right: 126px"
+    @click="upload"
+  />
+
+  <!-- Download -->
+  <img
+    src="@/assets/icons/download.svg"
+    title="Download"
+    class="icon-button"
+    style="position: fixed; top: 10px; right: 68px"
+    @click="download"
+  />
+
+  <!-- Edit -->
   <img
     src="@/assets/icons/edit_note.svg"
     title="Edit Schedule"

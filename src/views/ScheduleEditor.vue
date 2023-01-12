@@ -14,6 +14,10 @@ function addNew() {
   schedule.items.push(new ScheduleItem());
 }
 
+function insertAt(i: number) {
+  schedule.items.splice(i, 0, new ScheduleItem());
+}
+
 function removeAt(i: number) {
   schedule.items.splice(i, 1);
 }
@@ -66,6 +70,9 @@ function goBack() {
 
     <table class="timeline-table">
       <tr v-for="(item, i) of schedule.items" :key="i" class="timeline-item">
+        <td class="timeline-insert">
+          <button @click="insertAt(i)">+</button>
+        </td>
         <td class="timeline-time">
           <input type="text" v-model="item.startTime" />
         </td>
@@ -94,6 +101,11 @@ function goBack() {
   .timeline-table {
     max-width: 400px;
   }
+}
+
+.timeline-insert {
+  width: 24px;
+  font-weight: bold;
 }
 
 .timeline-time {
